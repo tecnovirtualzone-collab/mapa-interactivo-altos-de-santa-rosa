@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa Interactivo - Finca Altos de Santa Rosa</title>
+    <!-- Leaflet CSS y JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Google Fonts para estilo -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        #map-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 20px auto;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        #map {
+            width: 100%;
+            height: 600px;
+        }
+        #avatar {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            background-image: url('avatar.png');
+            background-size: cover;
+            z-index: 1000;
+            cursor: pointer;
+            animation: float 3s ease-in-out infinite;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.4);
+        }
+        @keyframes float {
+            0% { transform: translate(-50%, -50%) translateY(0px); }
+            50% { transform: translate(-50%, -50%) translateY(-20px); }
+            100% { transform: translate(-50%, -50%) translateY(0px); }
+        }
+        #info-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            max-width: 300px;
+        }
+        #info-panel h3 {
+            margin-top: 0;
+            color: #2e7d3e;
+        }
+        #info-panel p {
+            margin-bottom: 10px;
+        }
+        .btn-audio {
+            background: #2e7d3e;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 10px;
+            transition: background 0.3s;
+        }
+        .btn-audio:hover {
+            background: #1b5e20;
+        }
+    </style>
+</head>
+<body>
+    <!-- Panel de información -->
+    <div id="info-panel">
+        <h3>🌿 Finca Altos de Santa Rosa</h3>
+        <p><strong>Descripción:</strong> Finca ecoturística dedicada al descanso, la naturaleza y la producción sostenible.</p>
+        <p><strong>Recomendación:</strong> Mantener el lugar limpio y respetar la naturaleza.</p>
+    </div>
+
+    <!-- Avatar flotante -->
+    <div id="avatar" onclick="playAudio('entrada.mp3')"></div>
+
+    <!-- Contenedor del mapa -->
+    <div id="map-container">
+        <div id="map"></div>
+    </div>
+
+    <!-- Script para Leaflet.js -->
+    <script>
+        // Inicializa el mapa en el centro de la finca
+        const map = L.map('map').setView([2.5, -75.5], 14);
+
+        // Añade el tile layer de OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 19
+        }).addTo(map);
+
+        // Estilo personalizado para los marcadores
+        const customIcon = L.icon({
+            iconUrl: 'https://cdn-icons-png.flaticon.com/512/447/447005.png', // Icono de mapa
+            iconSize: [32, 32],
+            iconAnchor: [16, 16],
+            popupAnchor: [0, -16]
+        });
+
+        // Puntos de interés basados en tu mapa
+        const puntosDeInteres = [
+            {
+                nombre: "Entrada",
+                coordenadas: [2.5, -75.5],
+                audio: "entrada.mp3",
+                descripcion: "¡Bienvenidos al Centro Agroturístico Altos de Santa Rosa! Aquí podrán disfrutar de caminatas ecológicas, avistamiento de aves y experiencias de bienestar."
+            },
+            {
+                nombre: "Zona de Descanso",
+                coordenadas: [2.51, -75.495],
+                audio: "zona_descanso.mp3",
+                descripcion: "Esta es la zona de descanso. Aquí podrán relajarse y disfrutar del paisaje rural."
+            },
+            {
+                nombre: "Lagos",
+                coordenadas: [2.515, -75.49],
+                audio: "lagos.mp3",
+                descripcion: "Estos son los lagos principales. Aquí podrán disfrutar de actividades de pesca y relajación."
+            },
+            {
+                nombre: "Casona Principal",
+                coordenadas: [2.525, -75.48],
+                audio: "casona.mp3",
+                descripcion: "La casona principal es el lugar perfecto para descansar y disfrutar de un buen café."
+            },
+            {
+                nombre: "Limón",
+                coordenadas: [2.53, -75.475],
+                audio: "limon.mp3",
+                descripcion: "Aquí cultivamos limones. Prueben nuestras infusiones naturales."
+            },
+            {
+                nombre: "Kiosco",
+                coordenadas: [2.535, -75.47],
+                audio: "kiosco.mp3",
+                descripcion: "El kiosco es ideal para reuniones familiares y actividades grupales."
+            },
+            {
+                nombre: "Cabañas",
+                coordenadas: [2.54, -75.465],
+                audio: "cabanas.mp3",
+                descripcion: "Las cabañas están disponibles para pernoctar y disfrutar de la naturaleza."
+            }
+        ];
+
+        // Añade marcadores y popups con información y botón para audio
+        puntosDeInteres.forEach(punto => {
+            const marker = L.marker(punto.coordenadas, { icon: customIcon }).addTo(map);
+            marker.bindPopup(`
+                <div style="text-align: center;">
+                    <h3 style="color: #2e7d3e; margin: 10px 0;">${punto.nombre}</h3>
+                    <p style="font-size: 14px; margin: 5px 0;">${punto.descripcion}</p>
+                    <button class="btn-audio" onclick="playAudio('${punto.audio}')">🎧 Escuchar Guía</button>
+                </div>
+            `);
+        });
+
+        // Función para reproducir audio
+        function playAudio(audioFile) {
+            const audio = new Audio(audioFile);
+            audio.play();
+            console.log(`Reproduciendo audio: ${audioFile}`);
+        }
+    </script>
+</body>
+</html>
