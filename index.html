@@ -103,7 +103,7 @@
         // Inicializa el mapa en el centro de la finca
         const map = L.map('map').setView([2.5, -75.5], 14);
 
-        // Añade el tile layer de OpenStreetMap
+        // Usa un tile layer alternativo (sin necesidad de registro)
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
             maxZoom: 19
